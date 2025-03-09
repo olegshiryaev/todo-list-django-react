@@ -1,14 +1,19 @@
 import React, { useState, useEffect } from "react"
 import axios from "axios"
+import {
+    BrowserRouter as Router,
+    Route,
+    Routes,
+    Navigate,
+} from "react-router-dom"
+import Login from "./Login"
 import "./App.css"
 
-function App() {
+function Tasks({ token }) {
     const [tasks, setTasks] = useState([])
     const [title, setTitle] = useState("")
     const [description, setDescription] = useState("")
-    const token = "515b36c59505a0dfd4dd21c68bee97d7cec9f3c9" // Замени на свой токен (временно)
 
-    // Получение списка задач
     useEffect(() => {
         axios
             .get("http://127.0.0.1:8000/api/tasks/", {
@@ -24,7 +29,6 @@ function App() {
             })
     }, [token])
 
-    // Создание новой задачи
     const handleSubmit = (e) => {
         e.preventDefault()
         axios
@@ -78,6 +82,29 @@ function App() {
                 ))}
             </ul>
         </div>
+    )
+}
+
+function App() {
+    const [token, setToken] = useState(null)
+
+    return (
+        <Router>
+            <Routes>
+                <Route path="/login" element={<Login setToken={setToken} />} />
+                <Route
+                    path="/tasks"
+                    element={
+                        token ? (
+                            <Tasks token={token} />
+                        ) : (
+                            <Navigate to="/login" />
+                        )
+                    }
+                />
+                <Route path="/" element={<Navigate to="/login" />} />
+            </Routes>
+        </Router>
     )
 }
 

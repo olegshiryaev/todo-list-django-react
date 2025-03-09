@@ -34,3 +34,29 @@ li {
     padding: 10px;
     border-bottom: 1px solid #ddd;
 }
+
+.Login {
+    text-align: center;
+    max-width: 400px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.Login input {
+    display: block;
+    width: 100%;
+    margin: 10px 0;
+    padding: 8px;
+}
+
+.Login button {
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+.Login button:hover {
+    background-color: #0056b3;
+}
