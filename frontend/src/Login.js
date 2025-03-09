@@ -16,7 +16,9 @@ function Login({ setToken }) {
                 password,
             })
             .then((response) => {
-                setToken(response.data.token)
+                const newToken = response.data.token
+                setToken(newToken)
+                localStorage.setItem("token", newToken) // Сохраняем токен в localStorage
                 navigate("/tasks")
             })
             .catch((error) => {

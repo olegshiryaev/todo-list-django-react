@@ -5,14 +5,16 @@ import {
     Route,
     Routes,
     Navigate,
+    useNavigate,
 } from "react-router-dom"
 import Login from "./Login"
 import "./App.css"
 
-function Tasks({ token }) {
+function Tasks({ token, setToken }) {
     const [tasks, setTasks] = useState([])
     const [title, setTitle] = useState("")
     const [description, setDescription] = useState("")
+    const navigate = useNavigate()
 
     useEffect(() => {
         axios
@@ -55,9 +57,51 @@ function Tasks({ token }) {
             })
     }
 
+    const handleLogout = () => {
+        setToken(null)
+        localStorage.removeItem("token") // Удаляем токен из localStorage
+        navigate("/login")
+    }
+
+    const toggleTaskStatus = (taskId, currentStatus) => {
+        const task = tasks.find((t) => t.id === taskId)
+        axios
+            .put(
+                `http://127.0.0.1:8000/api/tasks/${taskId}/`,
+                {
+                    title: task.title,
+                    description: task.description,
+                    completed: !currentStatus,
+                },
+                {
+                    headers: {
+                        Authorization: `Token ${token}`,
+                    },
+                }
+            )
+            .then((response) => {
+                setTasks(
+                    tasks.map((task) =>
+                        task.id === taskId
+                            ? { ...task, completed: !currentStatus }
+                            : task
+                    )
+                )
+            })
+            .catch((error) => {
+                console.error(
+                    "Ошибка при обновлении задачи:",
+                    error.response?.data || error
+                )
+            })
+    }
+
     return (
         <div className="App">
             <h1>To-Do List</h1>
+            <button onClick={handleLogout} className="logout-btn">
+                Выход
+            </button>
             <form onSubmit={handleSubmit}>
                 <input
                     type="text"
@@ -78,6 +122,14 @@ function Tasks({ token }) {
                     <li key={task.id}>
                         {task.title} - {task.description} (
                         {task.completed ? "Выполнено" : "Не выполнено"})
+                        <button
+                            onClick={() =>
+                                toggleTaskStatus(task.id, task.completed)
+                            }
+                            className="toggle-btn"
+                        >
+                            {task.completed ? "Отменить" : "Выполнить"}
+                        </button>
                     </li>
                 ))}
             </ul>
@@ -86,7 +138,7 @@ function Tasks({ token }) {
 }
 
 function App() {
-    const [token, setToken] = useState(null)
+    const [token, setToken] = useState(localStorage.getItem("token")) // Загружаем токен из localStorage
 
     return (
         <Router>
@@ -96,7 +148,7 @@ function App() {
                     path="/tasks"
                     element={
                         token ? (
-                            <Tasks token={token} />
+                            <Tasks token={token} setToken={setToken} />
                         ) : (
                             <Navigate to="/login" />
                         )

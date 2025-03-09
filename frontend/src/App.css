@@ -60,3 +60,29 @@ li {
 .Login button:hover {
     background-color: #0056b3;
 }
+
+.logout-btn {
+    padding: 10px 20px;
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    cursor: pointer;
+    margin-bottom: 20px;
+}
+
+.logout-btn:hover {
+    background-color: #c82333;
+}
+
+.toggle-btn {
+    margin-left: 10px;
+    padding: 5px 10px;
+    background-color: #28a745;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+.toggle-btn:hover {
+    background-color: #218838;
+}
