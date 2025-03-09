@@ -59,7 +59,7 @@ function Tasks({ token, setToken }) {
 
     const handleLogout = () => {
         setToken(null)
-        localStorage.removeItem("token") // Удаляем токен из localStorage
+        localStorage.removeItem("token")
         navigate("/login")
     }
 
@@ -91,6 +91,24 @@ function Tasks({ token, setToken }) {
             .catch((error) => {
                 console.error(
                     "Ошибка при обновлении задачи:",
+                    error.response?.data || error
+                )
+            })
+    }
+
+    const deleteTask = (taskId) => {
+        axios
+            .delete(`http://127.0.0.1:8000/api/tasks/${taskId}/delete/`, {
+                headers: {
+                    Authorization: `Token ${token}`,
+                },
+            })
+            .then(() => {
+                setTasks(tasks.filter((task) => task.id !== taskId))
+            })
+            .catch((error) => {
+                console.error(
+                    "Ошибка при удалении задачи:",
                     error.response?.data || error
                 )
             })
@@ -129,6 +147,12 @@ function Tasks({ token, setToken }) {
                             className="toggle-btn"
                         >
                             {task.completed ? "Отменить" : "Выполнить"}
+                        </button>
+                        <button
+                            onClick={() => deleteTask(task.id)}
+                            className="delete-btn"
+                        >
+                            Удалить
                         </button>
                     </li>
                 ))}
