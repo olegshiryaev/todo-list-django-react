@@ -4,5 +4,12 @@ from .serializers import TaskSerializer
 
 
 class TaskListCreateView(generics.ListCreateAPIView):
-    queryset = Task.objects.all()
     serializer_class = TaskSerializer
+
+    def get_queryset(self):
+        # Показываем только задачи текущего пользователя
+        return Task.objects.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        # При создании задачи привязываем её к текущему пользователю
+        serializer.save(user=self.request.user)
