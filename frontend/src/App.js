@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect } from "react" // useEffect нужен здесь
 import axios from "axios"
 import {
     BrowserRouter as Router,
@@ -8,8 +8,10 @@ import {
     useNavigate,
 } from "react-router-dom"
 import Login from "./Login"
+import Register from "./Register" // Убедись, что Register.js существует
 import "./App.css"
 
+// Компонент Tasks с правильными импортами
 function Tasks({ token, setToken }) {
     const [tasks, setTasks] = useState([])
     const [categories, setCategories] = useState([])
@@ -234,16 +236,22 @@ function App() {
             <Routes>
                 <Route path="/login" element={<Login setToken={setToken} />} />
                 <Route
+                    path="/register"
+                    element={<Register setToken={setToken} />}
+                />{" "}
+                {/* Добавлен маршрут для регистрации */}
+                <Route
                     path="/tasks"
                     element={
                         token ? (
                             <Tasks token={token} setToken={setToken} />
                         ) : (
-                            <Navigate to="/login" />
+                            <Navigate to="/register" />
                         )
                     }
                 />
-                <Route path="/" element={<Navigate to="/login" />} />
+                <Route path="/" element={<Navigate to="/register" />} />{" "}
+                {/* Стартовая страница - регистрация */}
             </Routes>
         </Router>
     )

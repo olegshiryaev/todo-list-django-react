@@ -136,3 +136,35 @@ select {
 .edit-btn:hover {
     background-color: #e0a800;
 }
+
+.App {
+    text-align: center;
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+input,
+textarea,
+select {
+    padding: 8px;
+    font-size: 16px;
+}
+
+.error {
+    color: red;
+}
+
+.link-btn {
+    background: none;
+    color: #007bff;
+    text-decoration: underline;
+    padding: 0;
+}
