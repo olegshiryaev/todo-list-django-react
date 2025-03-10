@@ -12,49 +12,87 @@ import "./App.css"
 
 function Tasks({ token, setToken }) {
     const [tasks, setTasks] = useState([])
+    const [categories, setCategories] = useState([])
     const [title, setTitle] = useState("")
     const [description, setDescription] = useState("")
+    const [categoryId, setCategoryId] = useState("")
+    const [filter, setFilter] = useState("all")
+    const [editingTask, setEditingTask] = useState(null)
     const navigate = useNavigate()
 
     useEffect(() => {
         axios
-            .get("http://127.0.0.1:8000/api/tasks/", {
-                headers: {
-                    Authorization: `Token ${token}`,
-                },
+            .get("/api/tasks/", {
+                headers: { Authorization: `Token ${token}` },
             })
-            .then((response) => {
-                setTasks(response.data)
-            })
-            .catch((error) => {
+            .then((response) => setTasks(response.data))
+            .catch((error) =>
                 console.error("Ошибка при загрузке задач:", error)
+            )
+
+        axios
+            .get("/api/categories/", {
+                headers: { Authorization: `Token ${token}` },
             })
+            .then((response) => setCategories(response.data))
+            .catch((error) =>
+                console.error("Ошибка при загрузке категорий:", error)
+            )
     }, [token])
 
     const handleSubmit = (e) => {
         e.preventDefault()
-        axios
-            .post(
-                "http://127.0.0.1:8000/api/tasks/",
-                {
-                    title,
-                    description,
-                    completed: false,
-                },
-                {
-                    headers: {
-                        Authorization: `Token ${token}`,
+        if (editingTask) {
+            axios
+                .put(
+                    `/api/tasks/${editingTask.id}/`,
+                    {
+                        title: title || editingTask.title,
+                        description: description || editingTask.description,
+                        completed: editingTask.completed,
+                        category_id:
+                            categoryId || editingTask.category?.id || null,
                     },
-                }
-            )
-            .then((response) => {
-                setTasks([...tasks, response.data])
-                setTitle("")
-                setDescription("")
-            })
-            .catch((error) => {
-                console.error("Ошибка при создании задачи:", error)
-            })
+                    {
+                        headers: { Authorization: `Token ${token}` },
+                    }
+                )
+                .then((response) => {
+                    setTasks(
+                        tasks.map((task) =>
+                            task.id === editingTask.id ? response.data : task
+                        )
+                    )
+                    setEditingTask(null)
+                    setTitle("")
+                    setDescription("")
+                    setCategoryId("")
+                })
+                .catch((error) =>
+                    console.error("Ошибка при редактировании:", error)
+                )
+        } else {
+            axios
+                .post(
+                    "/api/tasks/",
+                    {
+                        title,
+                        description,
+                        completed: false,
+                        category_id: categoryId || null,
+                    },
+                    {
+                        headers: { Authorization: `Token ${token}` },
+                    }
+                )
+                .then((response) => {
+                    setTasks([...tasks, response.data])
+                    setTitle("")
+                    setDescription("")
+                    setCategoryId("")
+                })
+                .catch((error) => console.error("Ошибка при создании:", error))
+        }
     }
 
     const handleLogout = () => {
@@ -67,16 +105,15 @@ function Tasks({ token, setToken }) {
         const task = tasks.find((t) => t.id === taskId)
         axios
             .put(
-                `http://127.0.0.1:8000/api/tasks/${taskId}/`,
+                `/api/tasks/${taskId}/`,
                 {
                     title: task.title,
                     description: task.description,
                     completed: !currentStatus,
+                    category_id: task.category?.id || null,
                 },
                 {
-                    headers: {
-                        Authorization: `Token ${token}`,
-                    },
+                    headers: { Authorization: `Token ${token}` },
                 }
             )
             .then((response) => {
@@ -88,31 +125,30 @@ function Tasks({ token, setToken }) {
                     )
                 )
             })
-            .catch((error) => {
-                console.error(
-                    "Ошибка при обновлении задачи:",
-                    error.response?.data || error
-                )
-            })
+            .catch((error) => console.error("Ошибка при обновлении:", error))
     }
 
     const deleteTask = (taskId) => {
         axios
-            .delete(`http://127.0.0.1:8000/api/tasks/${taskId}/delete/`, {
-                headers: {
-                    Authorization: `Token ${token}`,
-                },
+            .delete(`/api/tasks/${taskId}/delete/`, {
+                headers: { Authorization: `Token ${token}` },
             })
-            .then(() => {
-                setTasks(tasks.filter((task) => task.id !== taskId))
-            })
-            .catch((error) => {
-                console.error(
-                    "Ошибка при удалении задачи:",
-                    error.response?.data || error
-                )
-            })
+            .then(() => setTasks(tasks.filter((task) => task.id !== taskId)))
+            .catch((error) => console.error("Ошибка при удалении:", error))
     }
+
+    const editTask = (task) => {
+        setEditingTask(task)
+        setTitle(task.title)
+        setDescription(task.description)
+        setCategoryId(task.category?.id || "")
+    }
+
+    const filteredTasks = tasks.filter((task) => {
+        if (filter === "completed") return task.completed
+        if (filter === "incomplete") return !task.completed
+        return true
+    })
 
     return (
         <div className="App">
@@ -133,13 +169,36 @@ function Tasks({ token, setToken }) {
                     onChange={(e) => setDescription(e.target.value)}
                     placeholder="Описание"
                 />
-                <button type="submit">Добавить задачу</button>
+                <select
+                    value={categoryId}
+                    onChange={(e) => setCategoryId(e.target.value)}
+                >
+                    <option value="">Без категории</option>
+                    {categories.map((category) => (
+                        <option key={category.id} value={category.id}>
+                            {category.name}
+                        </option>
+                    ))}
+                </select>
+                <button type="submit">
+                    {editingTask ? "Сохранить" : "Добавить задачу"}
+                </button>
             </form>
+            <div className="filter">
+                <button onClick={() => setFilter("all")}>Все</button>
+                <button onClick={() => setFilter("completed")}>
+                    Выполненные
+                </button>
+                <button onClick={() => setFilter("incomplete")}>
+                    Невыполненные
+                </button>
+            </div>
             <ul>
-                {tasks.map((task) => (
+                {filteredTasks.map((task) => (
                     <li key={task.id}>
                         {task.title} - {task.description} (
                         {task.completed ? "Выполнено" : "Не выполнено"})
+                        {task.category && <span> [{task.category.name}]</span>}
                         <button
                             onClick={() =>
                                 toggleTaskStatus(task.id, task.completed)
@@ -147,6 +206,12 @@ function Tasks({ token, setToken }) {
                             className="toggle-btn"
                         >
                             {task.completed ? "Отменить" : "Выполнить"}
+                        </button>
+                        <button
+                            onClick={() => editTask(task)}
+                            className="edit-btn"
+                        >
+                            Редактировать
                         </button>
                         <button
                             onClick={() => deleteTask(task.id)}
@@ -162,7 +227,7 @@ function Tasks({ token, setToken }) {
 }
 
 function App() {
-    const [token, setToken] = useState(localStorage.getItem("token")) // Загружаем токен из localStorage
+    const [token, setToken] = useState(localStorage.getItem("token"))
 
     return (
         <Router>

@@ -1,5 +1,4 @@
 # Python / Django
-# Python / Django
 __pycache__/
 *.py[cod]
 *.pyc
@@ -18,8 +17,12 @@ migrations/
 node_modules/
 dist/
 build/
+frontend/build/
 *.log
 npm-debug.log*
+
+# Django static files
+backend/static/
 
 # IDE и редакторы
 .idea/
@@ -37,3 +40,4 @@ Thumbs.db
 # Docker
 *.dockerignore
 docker-compose.yml.bak
+*.tar.gz  # Исключаем архивы, которые мы создавали
